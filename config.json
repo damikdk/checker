@@ -1,0 +1,14 @@
+{
+  "endpoints": [
+    {
+      "name": "Extract Subtitles",
+      "url": "http://",
+      "method": "GET",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer TOKEN"
+      },
+      "timeout": 10
+    }
+  ]
+}
