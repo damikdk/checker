@@ -17,7 +17,7 @@ def main():
         logging.error(f"Config error - FAILED - {e}")
         return
 
-    logging.info(f"-------------------------------- Starting check")
+    logging.info(f"----------------- Starting check")
 
     for endpoint in config['endpoints']:
         name = endpoint['name']
@@ -29,12 +29,28 @@ def main():
                 url=endpoint['url'],
                 headers=endpoint.get('headers', {}),
                 json=endpoint.get('payload'),
-                timeout=endpoint.get('timeout', 10)
+                timeout=endpoint.get('timeout', 10),
+                stream=endpoint.get('stream', False)
             )
+            
             response_time = int(
                 (datetime.now() - start_time).total_seconds() * 1000)
 
-            if response.status_code == 200:
+            success = response.status_code == 200
+            
+            # Also check if response contains required success_payload keys
+            if not success and endpoint.get('success_payload'):
+                try:
+                    response_json = response.json()
+                    success_keys = endpoint.get('success_payload', [])
+                    success = all(key in response_json for key in success_keys)
+                except:
+                    success = False
+
+            # if not endpoint.get('stream', False):
+            #     print(str(response.json())[:100])
+
+            if success:
                 logging.info(f"{name} - SUCCESS - {response_time}ms")
             else:
                 logging.info(
@@ -47,7 +63,7 @@ def main():
             failed_checks.append(name)
 
     if failed_checks:
-        message = f"🚨 Health Check Alert: {len(failed_checks)} endpoint(s) failed - {', '.join(failed_checks)}"
+        message = f"🚨 Health Check Alert\n\n {len(failed_checks)} endpoint(s) failed:\n\n - {'\n - '.join(failed_checks)}"
 
         if config['telegram']['enabled']:
             send_telegram_message(
@@ -65,7 +81,7 @@ def main():
                 config['telegram']['chat_id']
             )
 
-        logging.info(f"-------------------------------- All checks passed!")
+        logging.info(f"----------------- All checks passed!")
 
 
 def send_telegram_message(message, bot_token, chat_id):
