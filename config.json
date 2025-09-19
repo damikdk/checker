@@ -1,4 +1,9 @@
 {
+  "telegram": {
+    "enabled": true,
+    "bot_token": "TOKEN",
+    "chat_id": "CHAT_ID"
+  },
   "endpoints": [
     {
       "name": "Extract Subtitles",
